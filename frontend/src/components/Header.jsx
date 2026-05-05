@@ -53,11 +53,11 @@ function Header() {
         showHeader ? "translate-y-0 opacity-100" : "-translate-y-20 opacity-0"
       }`}
     >
-      <nav className="flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-md rounded-2xl shadow-md border border-gray-200">
+      <nav className="flex items-center justify-between px-6 py-3 bg-white rounded-2xl shadow-md border border-gray-200">
         
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <img src={logo} className="h-10" />
+          <img src={logo} className="h-14 w-auto object-contain" />
           <h1 className="text-lg font-semibold text-purple-600">
             Me Despache
           </h1>
@@ -72,7 +72,7 @@ function Header() {
           </li>
 
           <li>
-            <a href="#" className="hover:text-black transition">
+            <a href="/sobre" className="hover:text-black transition">
               Sobre
             </a>
           </li>

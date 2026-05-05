@@ -4,6 +4,8 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
+import Header from "../../components/Header";
+
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -46,6 +48,7 @@ function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 pt-36 pb-10 relative overflow-hidden bg-[#070014]">
+      <Header />
 
       {/* 🔥 BACKGROUND */}
       <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-purple-600 rounded-full blur-[180px] opacity-50"></div>

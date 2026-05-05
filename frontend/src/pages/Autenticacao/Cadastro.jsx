@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import { useState } from "react";
 import { FaShoppingBag } from "react-icons/fa";
 import { BiSolidStore } from "react-icons/bi";
+import Header from "../../components/Header";
 
 function Cadastro() {
   const navigate = useNavigate();
@@ -90,6 +91,7 @@ function Cadastro() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 pt-36 pb-10 relative overflow-hidden bg-[#070014]">
+      <Header />
 
       {/* 🔥 BACKGROUND PREMIUM */}
       <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-purple-600 rounded-full blur-[180px] opacity-50"></div>
