@@ -24,7 +24,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/loja/:id" element={<Loja />} />
         <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/cad-estabelecimento" element={<CadEstabelecimento />} />
+        <Route path="/" element={<CadEstabelecimento />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/pagamento" element={<Pagamento />} />
         <Route path="/loja" element={<Loja />} />
@@ -33,7 +33,7 @@ function App() {
         <Route path="/erro" element={<Erro />} />
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/landing" element={<Landing />} />
-        <Route path="/" element={<PainelComerciante />} />
+        <Route path="/painel-comerciante" element={<PainelComerciante />} />
       </Routes>
       <Footers />
     </BrowserRouter>
