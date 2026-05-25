@@ -14,11 +14,12 @@ import Sobre from "./pages/Cliente/Sobre";
 import Loja from "./pages/Loja";
 import CadEstabelecimento from "./pages/Comerciante/CadEstabelecimento";
 import PainelComerciante from "./pages/Comerciante/PainelComerciante";
+import Perfil from "./pages/Perfil";
 
 function App() {
   return (
     <BrowserRouter>
-      {/* <Header /> */}
+      {<Header />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
@@ -34,6 +35,7 @@ function App() {
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/" element={<Landing />} />
         <Route path="/painel-comerciante" element={<PainelComerciante />} />
+        <Route path="/perfil" element={<Perfil />} />
       </Routes>
       <Footers />
     </BrowserRouter>

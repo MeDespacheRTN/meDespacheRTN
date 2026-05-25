@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+
 function Landing() {
   return (
     <div className="min-h-screen flex flex-col font-sans">
@@ -97,7 +98,6 @@ function Landing() {
       </h3>
 
       <ul className="text-sm text-gray-600 mb-6 space-y-2">
-        <li>✔ 1 dispositivo</li>
         <li>✔ Visibilidade básica</li>
         <li>✔ Suporte padrão</li>
       </ul>
@@ -119,7 +119,6 @@ function Landing() {
       </h3>
 
       <ul className="text-sm text-gray-600 mb-6 space-y-2">
-        <li>✔ 3 dispositivos</li>
         <li>✔ Destaque nos comércios</li>
         <li>✔ Suporte prioritário</li>
       </ul>
@@ -141,7 +140,6 @@ function Landing() {
       </h3>
 
       <ul className="text-sm text-gray-600 mb-6 space-y-2">
-        <li>✔ Dispositivos ilimitados</li>
         <li>✔ Máxima visibilidade</li>
         <li>✔ Suporte VIP</li>
       </ul>
