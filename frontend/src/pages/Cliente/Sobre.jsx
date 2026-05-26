@@ -62,7 +62,7 @@ function Sobre() {
               },
               {
                 titulo: "Visão",
-                texto: "Ser referência em soluções digitais no Brasil.",
+                texto: "Ser referência em soluções digitais em Salvador.",
               },
               {
                 titulo: "Valores",

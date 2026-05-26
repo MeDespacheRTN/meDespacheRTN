@@ -154,7 +154,7 @@ export default function PainelComerciante() {
             </p>
 
             <h3 className="text-3xl md:text-4xl font-bold">
-              4.8 ⭐
+              0.0 ⭐
             </h3>
           </div>
 
@@ -164,7 +164,7 @@ export default function PainelComerciante() {
             </p>
 
             <h3 className="text-3xl md:text-4xl font-bold">
-              2.340
+              0
             </h3>
           </div>
 
@@ -174,7 +174,7 @@ export default function PainelComerciante() {
             </p>
 
             <h3 className="text-3xl md:text-4xl font-bold">
-              89
+              0
             </h3>
           </div>
 
@@ -184,7 +184,7 @@ export default function PainelComerciante() {
             </p>
 
             <h3 className="text-3xl md:text-4xl font-bold">
-              R$ 4.520
+              R$ 0,00
             </h3>
           </div>
         </section>

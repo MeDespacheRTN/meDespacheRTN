@@ -300,16 +300,10 @@ function Home() {
           nome: "🔔 Notificações",
         },
         {
-          nome: "🎨 Aparência",
-        },
-        {
           nome: "🔒 Privacidade",
         },
         {
           nome: "💳 Pagamentos",
-        },
-        {
-          nome: "🚪 Sair",
         },
       ].map((config, i) => (
         <button
