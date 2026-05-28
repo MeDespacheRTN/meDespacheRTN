@@ -1,4 +1,29 @@
+import logo from "../../assets/midislogoE.png";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { useState } from "react";
+import { FaShoppingBag } from "react-icons/fa";
+import { BiSolidStore } from "react-icons/bi";
+import Header from "../../components/Header";
+import { use } from "react";
+
 export default function PainelComerciante() {
+  
+  const [produtosSec, setProdutos] = useState("");
+  const [avaliacoesSec, setAvaliacoes] = useState("");
+
+  async function GetProdutos(empresa) {
+    
+  }
+
+  async function GetAvaliacoes(empresa) {
+    
+  }
+
+  async function GetProdutos(empresa) {
+    
+  }
+
   const produtos = [
     {
       id: 1,

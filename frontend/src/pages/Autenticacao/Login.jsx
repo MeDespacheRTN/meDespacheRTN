@@ -13,6 +13,25 @@ function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const navigate = useNavigate();
 
+  async function comerciantePainel(usuarioId) {
+
+    try {
+
+      const response = await axios.get(
+        `http://localhost:5005/comerciante/painel-comerciante/${usuarioId}`
+      );
+
+      console.log(response.data);
+
+      return response.data;
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -33,11 +52,17 @@ function Login() {
       });
 
       if (usuario.tipo === "comerciante") {
-        navigate("/cad-estabelecimento");
+
+        const empresa = await comerciantePainel(usuario.id);
+
+        navigate(`/painel-comerciante/${empresa.id}`);
       } else {
         navigate("/");
       }
     } catch (err) {
+
+      console.log(err.response?.data);
+
       Swal.fire({
         icon: "error",
         title: "Erro",

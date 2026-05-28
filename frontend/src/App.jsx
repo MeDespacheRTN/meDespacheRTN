@@ -34,7 +34,7 @@ function App() {
         <Route path="/erro" element={<Erro />} />
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/" element={<Landing />} />
-        <Route path="/painel-comerciante" element={<PainelComerciante />} />
+        <Route path="/painel-comerciante/:id" element={<PainelComerciante />} />
         <Route path="/perfil" element={<Perfil />} />
       </Routes>
       <Footers />
