@@ -303,7 +303,7 @@ function Home() {
           nome: "🔒 Privacidade",
         },
         {
-          nome: "💳 Pagamentos",
+          nome: "📊 Dashboard",
         },
       ].map((config, i) => (
         <button
