@@ -215,6 +215,14 @@ function CadEstabelecimento() {
             <option value="">Categoria</option>
             <option>Restaurante</option>
             <option>Lanchonete</option>
+            <option>Padaria</option>
+            <option>Supermercado</option>
+            <option>Farmácia</option>
+            <option>Roupas</option>
+            <option>Eletrônicos</option>
+            <option>Autopeças</option>
+            <option>Outros</option>
+
           </select>
 
           <input

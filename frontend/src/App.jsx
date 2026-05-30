@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+
 import Login from "./pages/Autenticacao/Login";
 import Cadastro from "./pages/Autenticacao/Cadastro";
 import Header from "./components/Header";
@@ -16,10 +22,23 @@ import CadEstabelecimento from "./pages/Comerciante/CadEstabelecimento";
 import PainelComerciante from "./pages/Comerciante/PainelComerciante";
 import Perfil from "./pages/Perfil";
 
-function App() {
+
+function Layout() {
+  const location = useLocation();
+
+  const esconderLayout = [
+    "/dashboard",
+    "/cad-estabelecimento",
+    "/painel-comerciante",
+  
+  ];
+
+  const ocultar = esconderLayout.includes(location.pathname);
+
   return (
-    <BrowserRouter>
-      {<Header />}
+    <>
+      {!ocultar && <Header />}
+
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
@@ -34,10 +53,19 @@ function App() {
         <Route path="/erro" element={<Erro />} />
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/" element={<Landing />} />
-        <Route path="/painel-comerciante/:id" element={<PainelComerciante />} />
+        <Route path="/painel-comerciante" element={<PainelComerciante />} />
         <Route path="/perfil" element={<Perfil />} />
       </Routes>
-      <Footers />
+
+      {!ocultar && <Footers />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Layout />
     </BrowserRouter>
   );
 }

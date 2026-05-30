@@ -7,7 +7,7 @@ function Landing() {
 
      
       <section
-        className="h-[85vh] flex items-center justify-center mt-24 bg-cover bg-center relative"
+        className="h-[85vh] flex items-center justify-center  bg-cover bg-center relative"
         style={{ backgroundImage: "url('/bg-comercios.png')" }}
       >
 
