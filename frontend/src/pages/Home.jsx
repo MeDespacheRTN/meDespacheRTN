@@ -27,7 +27,7 @@ function Home() {
     async function buscarEstabelecimentos() {
       try {
         const response = await fetch(
-          "http://localhost:5005/estabelecimentos"
+          `${import.meta.env.VITE_API_URL}estabelecimentos`
         );
 
         const data = await response.json();
@@ -53,7 +53,7 @@ function Home() {
     const buscarMelhoresAvaliacoes = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5005/auth/melhores_avaliacoes"
+          `${import.meta.env.VITE_API_URL}auth/melhores_avaliacoes`
         );
 
         const data = await response.json();

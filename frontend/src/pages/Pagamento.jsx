@@ -20,7 +20,7 @@ export default function PagamentoPage() {
   try {
     setLoading(true);
 
-    const res = await fetch("http://localhost:5005/payment/create-checkout", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}payment/create-checkout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

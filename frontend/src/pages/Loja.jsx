@@ -62,7 +62,7 @@ export default function Loja() {
   useEffect(() => {
     const buscarLoja = async () => {
       try {
-        const response = await fetch(`http://localhost:5005/auth/loja/${id}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}auth/loja/${id}`);
         const data = await response.json();
 
         if (response.ok) {

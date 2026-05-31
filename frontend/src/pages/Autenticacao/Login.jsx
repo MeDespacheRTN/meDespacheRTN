@@ -18,7 +18,7 @@ function Login() {
     try {
 
       const response = await axios.get(
-        `http://localhost:5005/comerciante/painel-comerciante/${usuarioId}`
+        `${import.meta.env.VITE_API_URL}comerciante/painel-comerciante/${usuarioId}`
       );
 
       console.log(response.data);
@@ -36,7 +36,7 @@ function Login() {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:5005/auth/login", {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}auth/login`, {
         email,
         senha,
       });
