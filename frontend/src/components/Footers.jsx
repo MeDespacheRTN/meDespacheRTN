@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import logo from "../assets/midislogoE.png";
 
 function Footers() {
@@ -18,10 +19,10 @@ function Footers() {
 
         {/* Links básicos */}
         <div className="flex gap-6 text-sm opacity-80">
-          <a href="/sobre" className="hover:opacity-100 transition">Sobre</a>
-          <a href="#" className="hover:opacity-100 transition">Contato</a>
-          <a href="#" className="hover:opacity-100 transition">Termos</a>
-          <a href="#" className="hover:opacity-100 transition">Privacidade</a>
+          <Link to="/sobre" className="hover:opacity-100 transition">Sobre</Link>
+          <Link to="/contato" className="hover:opacity-100 transition">Contato</Link>
+          <Link to="/termos" className="hover:opacity-100 transition">Termos</Link>
+          <Link to="/privacidade" className="hover:opacity-100 transition">Privacidade</Link>
         </div>
 
         {/* Botão expandir */}
@@ -40,36 +41,33 @@ function Footers() {
           <div>
             <h3 className="font-semibold mb-3 text-white">Empresa</h3>
             <ul className="space-y-2 opacity-80">
-              <li><a href="#">Sobre nós</a></li>
-              <li><a href="#">Carreiras</a></li>
-              <li><a href="#">Blog</a></li>
+              <li><Link to="/sobre" className="hover:text-white transition">Sobre nós</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-3 text-white">Produto</h3>
             <ul className="space-y-2 opacity-80">
-              <li><a href="#">Como funciona</a></li>
-              <li><a href="#">Planos</a></li>
-              <li><a href="#">Integrações</a></li>
+              <li><Link to="/como-funciona" className="hover:text-white transition">Como funciona</Link></li>
+              <li><Link to="/planos" className="hover:text-white transition">Planos</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-3 text-white">Suporte</h3>
             <ul className="space-y-2 opacity-80">
-              <li><a href="#">Central de ajuda</a></li>
-              <li><a href="#">Fale conosco</a></li>
-              <li><a href="#">FAQ</a></li>
+              <li><Link to="/ajuda" className="hover:text-white transition">Central de ajuda</Link></li>
+              <li><Link to="/contato" className="hover:text-white transition">Fale conosco</Link></li>
+              <li><Link to="/faq" className="hover:text-white transition">FAQ</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-3 text-white">Legal</h3>
             <ul className="space-y-2 opacity-80">
-              <li><a href="#">Termos de uso</a></li>
-              <li><a href="#">Privacidade</a></li>
-              <li><a href="#">Segurança</a></li>
+              <li><Link to="/termos" className="hover:text-white transition">Termos de uso</Link></li>
+              <li><Link to="/privacidade" className="hover:text-white transition">Privacidade</Link></li>
+              
             </ul>
           </div>
 

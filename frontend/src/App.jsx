@@ -23,6 +23,16 @@ import PainelComerciante from "./pages/Comerciante/PainelComerciante";
 import Perfil from "./pages/Perfil";
 import CadProduto from "./pages/Comerciante/CadProduto";
 
+// Footer Pages
+import ComoFunciona from "./pages/FooterPages/ComoFunciona";
+import Planos from "./pages/FooterPages/Planos";
+import Contato from "./pages/FooterPages/Contato";
+import FAQ from "./pages/FooterPages/FAQ";
+import CentralAjuda from "./pages/FooterPages/CentralAjuda";
+import Termos from "./pages/FooterPages/Termos";
+import Privacidade from "./pages/FooterPages/Privacidade";
+import Seguranca from "./pages/FooterPages/Seguranca";
+
 
 function Layout() {
   const location = useLocation();
@@ -41,23 +51,34 @@ function Layout() {
     <>
       {!ocultar && <Header />}
 
-      <Routes>
+            <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/loja/:id" element={<Loja />} />
+        <Route path="/loja" element={<Loja />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/cad-estabelecimento" element={<CadEstabelecimento />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/pagamento" element={<Pagamento />} />
-        <Route path="/loja" element={<Loja />} />
         <Route path="/sucesso" element={<Sucesso />} />
         <Route path="/pendente" element={<Pendente />} />
         <Route path="/erro" element={<Erro />} />
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/" element={<Landing />} />
+
         <Route path="/painel-comerciante/:id" element={<PainelComerciante />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/cad-produto" element={<CadProduto />} />
+
+        {/* FOOTER PAGES */}
+        <Route path="/como-funciona" element={<ComoFunciona />} />
+        <Route path="/planos" element={<Planos />} />
+        <Route path="/contato" element={<Contato />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/ajuda" element={<CentralAjuda />} />
+        <Route path="/termos" element={<Termos />} />
+        <Route path="/privacidade" element={<Privacidade />} />
+        <Route path="/seguranca" element={<Seguranca />} />
       </Routes>
 
       {!ocultar && <Footers />}
