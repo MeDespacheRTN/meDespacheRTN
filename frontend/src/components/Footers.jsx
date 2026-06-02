@@ -78,7 +78,7 @@ function Footers() {
 
       {/* Copyright */}
       <div className="text-center text-xs opacity-70 py-4 border-t border-gray-800">
-        © 2025 Me Despache — Todos os direitos reservados.
+        © 2026 Me Despache — Todos os direitos reservados.
       </div>
 
     </footer>

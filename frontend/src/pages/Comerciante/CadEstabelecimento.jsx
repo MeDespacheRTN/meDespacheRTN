@@ -166,7 +166,7 @@ function CadEstabelecimento() {
         <div className="flex items-center gap-3">
 
           <button
-            onClick={() => navigate("/painel-comerciante")}
+            onClick={() => navigate("/home")}
             className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition"
           >
             <BiArrowBack className="text-xl" />

@@ -76,6 +76,8 @@ function Home() {
     navigate(`/loja/${id}`);
   }
 
+  
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#070014] text-white">
       {/* BLOBS */}
@@ -304,6 +306,7 @@ function Home() {
         },
         {
           nome: "📊 Dashboard",
+          rota: "/painel-comerciante/1" 
         },
       ].map((config, i) => (
         <button

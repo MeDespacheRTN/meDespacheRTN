@@ -17,38 +17,8 @@ function Navbar() {
       </Link>
 
       {/* SEARCH */}
-      <div className="flex items-center bg-[#140c2a] px-4 py-2 rounded-full w-[40%]">
-        <Search size={18} className="opacity-70" />
-        <input
-          type="text"
-          placeholder="Buscar Celular"
-          className="bg-transparent outline-none px-3 w-full text-sm"
-        />
-        <div className="flex items-center gap-1 border-l border-white/10 pl-3">
-          <MapPin size={16} />
-          <span className="text-sm">BA</span>
-        </div>
+      
       </div>
-
-      {/* ACTIONS */}
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-1 cursor-pointer hover:text-purple-400">
-          <Grid size={18} />
-          <span className="text-sm">Meus Anúncios</span>
-        </div>
-
-        <MessageCircle className="cursor-pointer hover:text-purple-400" />
-        <Bell className="cursor-pointer hover:text-purple-400" />
-
-        <button className="px-4 py-1 rounded-full border border-white/20 hover:bg-white/10 text-sm">
-          Entrar
-        </button>
-
-        <button className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-full text-sm font-semibold">
-          + Anunciar
-        </button>
-      </div>
-    </div>
   );
 }
 
@@ -116,10 +86,79 @@ export default function Loja() {
         <ShoppingCart className="cursor-pointer" />
       </div>
 
-      {/* BANNER */}
-      <div className="h-[250px] bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
-        <h2 className="text-3xl font-bold">Promoções do Dia 🔥</h2>
+      {/* BANNER PROMOCIONAL */}
+<div className="relative overflow-hidden">
+
+  {/* Fundo */}
+  <div className="h-[320px] bg-gradient-to-r from-purple-700 via-indigo-700 to-pink-600 relative">
+
+    {/* Efeitos */}
+    <div className="absolute top-0 left-0 w-full h-full bg-black/20"></div>
+
+    <div className="absolute -top-20 -left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+
+    <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-400/20 rounded-full blur-3xl"></div>
+
+    {/* Conteúdo */}
+    <div className="relative h-full max-w-7xl mx-auto px-8 flex items-center justify-between">
+
+      <div>
+
+        <span className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-sm font-semibold">
+          🔥 Oferta Especial
+        </span>
+
+        <h2 className="text-5xl font-black mt-5 leading-tight">
+          Promoções do Dia
+        </h2>
+
+        <p className="text-lg text-white/80 mt-4 max-w-xl">
+          Aproveite descontos exclusivos em produtos selecionados da loja.
+          Ofertas limitadas por tempo e estoque.
+        </p>
+
+        <button className="mt-6 bg-white text-purple-700 font-bold px-6 py-3 rounded-2xl hover:scale-105 transition">
+          Ver Ofertas
+        </button>
+
       </div>
+
+      {/* Card destaque */}
+      <div className="hidden lg:block">
+
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl w-[320px]">
+
+          <h3 className="text-2xl font-bold mb-4">
+            Destaques
+          </h3>
+
+          <div className="space-y-4">
+
+            <div className="flex justify-between">
+              <span>Produtos em promoção</span>
+              <span className="font-bold text-green-400">+32</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>Descontos de até</span>
+              <span className="font-bold text-yellow-400">50%</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>Avaliação média</span>
+              <span className="font-bold">⭐ 4.8</span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
 
       {/* PRODUTOS */}
       <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">

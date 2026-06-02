@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../config/supabase";
 
+
 import {
   BiStore,
   BiImageAdd,
@@ -11,6 +12,7 @@ import {
   BiEdit,
   BiBarChart,
   BiMedal,
+  BiArrowBack,
 } from "react-icons/bi";
 
 import { useNavigate } from "react-router-dom";
@@ -46,6 +48,17 @@ function PainelComerciante() {
   return (
     <div className="min-h-screen bg-[#070014] text-white p-6">
 
+            {/* BOTÃO VOLTAR */}
+      <div className="mb-6">
+        <button
+          onClick={() => navigate("/home")}
+          className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition"
+        >
+          <BiArrowBack className="text-xl" />
+          <span>Voltar</span>
+        </button>
+      </div>
+
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
 
@@ -54,16 +67,16 @@ function PainelComerciante() {
             <BiStore className="text-purple-500" />
             Painel do Comerciante
           </h1>
-
-  
         </div>
 
+        
+
         <button
-          onClick={() => navigate("/cad-estabelecimento")}
+          onClick={() => navigate("/cad-produto")}
           className="bg-purple-600 hover:bg-purple-700 transition px-6 py-4 rounded-3xl flex items-center gap-3 font-semibold text-lg shadow-lg shadow-purple-500/20"
         >
           <BiPlus className="text-2xl" />
-          Novo Comércio
+          Novo Produto
         </button>
       </div>
 

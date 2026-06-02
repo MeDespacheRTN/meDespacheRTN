@@ -21,6 +21,7 @@ import Loja from "./pages/Loja";
 import CadEstabelecimento from "./pages/Comerciante/CadEstabelecimento";
 import PainelComerciante from "./pages/Comerciante/PainelComerciante";
 import Perfil from "./pages/Perfil";
+import CadProduto from "./pages/Comerciante/CadProduto";
 
 
 function Layout() {
@@ -29,8 +30,9 @@ function Layout() {
   const esconderLayout = [
     "/dashboard",
     "/cad-estabelecimento",
-    "/painel-comerciante",
-  
+    "/painel-comerciante/1",
+    "/cad-produto",
+    "/pagamento"
   ];
 
   const ocultar = esconderLayout.includes(location.pathname);
@@ -55,6 +57,7 @@ function Layout() {
         <Route path="/" element={<Landing />} />
         <Route path="/painel-comerciante/:id" element={<PainelComerciante />} />
         <Route path="/perfil" element={<Perfil />} />
+        <Route path="/cad-produto" element={<CadProduto />} />
       </Routes>
 
       {!ocultar && <Footers />}
