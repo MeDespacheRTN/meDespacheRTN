@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/payment", paymentRoutes);
 
-// rota base
+
 app.use("/auth", authRoutes);
 app.use("/chat", chatRoutes);
 app.use("/comerciante", comercianteRoutes);
