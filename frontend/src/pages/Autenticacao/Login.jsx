@@ -14,7 +14,7 @@ function Login() {
   const navigate = useNavigate();
 
   async function comerciantePainel(usuarioId) {
-
+console.log(import.meta.env.VITE_API_URL);
     try {
 
       const response = await axios.get(
@@ -34,7 +34,7 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+console.log(import.meta.env.VITE_API_URL);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}auth/login`, {
         email,
