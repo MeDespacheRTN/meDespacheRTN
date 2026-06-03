@@ -11,13 +11,16 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
 app.use("/payment", paymentRoutes);
-
-
 app.use("/auth", authRoutes);
 app.use("/chat", chatRoutes);
 app.use("/comerciante", comercianteRoutes);
 
-app.listen(5005, () => {
-  console.log("Servidor rodando na porta 5005");
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(5005, () => {
+    console.log("Servidor rodando na porta 5005");
+  });
+}
+
+module.exports = app;
