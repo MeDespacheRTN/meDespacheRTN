@@ -9,13 +9,24 @@ const comercianteRoutes = require("./src/routes/comercianteRoutes");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// FALTA ESTA LINHA
+app.options("*", cors());
+
 app.use(express.json());
 
 app.use("/payment", paymentRoutes);
 app.use("/auth", authRoutes);
 app.use("/chat", chatRoutes);
 app.use("/comerciante", comercianteRoutes);
+
+console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
+console.log("SUPABASE_KEY:", process.env.SUPABASE_KEY ? "OK" : "UNDEFINED");
 
 if (process.env.NODE_ENV !== "production") {
   app.listen(5005, () => {
