@@ -348,26 +348,66 @@ function Home() {
         "
       >
         {/* BUSCA */}
-        <div className="w-full flex justify-center">
-          <input
-            type="text"
-            placeholder="Buscar comércios..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            className="
-              w-full max-w-2xl
-              px-4 sm:px-5 py-3
-              rounded-xl
-              bg-white/90 text-black
-              border border-gray-300
-              shadow-sm
-              focus:outline-none
-              focus:ring-2 focus:ring-purple-600
-            "
-          />
-        </div>
+        <div className="relative w-full max-w-3xl mx-auto mb-4">
+
+  <input
+    type="text"
+    placeholder="Buscar restaurantes, mercados, lojas..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="
+      w-full
+      py-4
+      pl-14
+      pr-5
+      rounded-2xl
+      bg-white
+      text-black
+      shadow-xl
+      outline-none
+      focus:ring-4
+      focus:ring-purple-500
+    "
+  />
+
+  <div className="absolute left-5 top-1/2 -translate-y-1/2">
+    🔍
+  </div>
+
+  
+
+</div>
+
+      <section className="mb-8">
+  <div className="bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-700 rounded-[32px] p-8 md:p-12 shadow-2xl">
+
+    <span className="bg-white/20 px-4 py-2 rounded-full text-sm font-semibold">
+      🚀 Evolua seu negócio
+    </span>
+
+    <h1 className="text-4xl md:text-6xl font-black mt-5">
+      Bem-vindo ao
+      <span className="block text-yellow-300">
+        MeDespache
+      </span>
+    </h1>
+
+    <p className="text-purple-100 text-lg mt-4 max-w-2xl">
+      Encontre restaurantes, mercados, farmácias e lojas próximas.
+    </p>
+
+    <div className="flex gap-4 mt-8 flex-wrap">
+      <button className="bg-white text-purple-700 font-bold px-6 py-3 rounded-2xl">
+        Explorar Lojas
+      </button>
+
+      <button className="border border-white/30 px-6 py-3 rounded-2xl">
+        Ver Promoções
+      </button>
+    </div>
+
+  </div>
+</section>
 
         {/* CARROSSEL */}
         <section>
@@ -408,6 +448,8 @@ function Home() {
             </div>
           </div>
         </section>
+
+              
 
         {/* MAIS BEM AVALIADOS */}
         <section>

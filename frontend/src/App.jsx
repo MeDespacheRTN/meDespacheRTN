@@ -42,7 +42,8 @@ function Layout() {
     "/cad-estabelecimento",
     "/painel-comerciante/1",
     "/cad-produto",
-    "/pagamento"
+    "/pagamento",
+    "/"
   ];
 
   const ocultar = esconderLayout.includes(location.pathname);
