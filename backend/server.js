@@ -15,8 +15,8 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// FALTA ESTA LINHA
-app.options("*", cors());
+// SOLUÇÃO: Passando um RegExp puro (/.*/) SEM aspas
+app.options(/.*/, cors());
 
 app.use(express.json());
 
