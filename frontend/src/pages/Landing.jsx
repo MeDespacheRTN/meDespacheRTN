@@ -5,7 +5,6 @@ function Landing() {
   return (
     <div className="min-h-screen flex flex-col font-sans">
 
-     console.log(import.meta.env.VITE_API_URL);
       <section
         className="h-[85vh] flex items-center justify-center  bg-cover bg-center relative"
         style={{ backgroundImage: "url('/bg-comercios.png')" }}
