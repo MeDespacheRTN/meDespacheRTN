@@ -14,7 +14,7 @@ router.get("/melhores_avaliacoes", authController.GetMelhoresEmpresas);
 
 router.get("/loja/:id", authController.GetLoja);
 
-// 💬 CHAT 
+// CHAT 
 // router.post("/conversa", authController.getOrCreateConversa);
 // router.get("/mensagens/:id", authController.getMensagens);
 // router.post("/mensagem", authController.enviarMensagem);
