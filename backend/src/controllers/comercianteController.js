@@ -16,17 +16,25 @@ const PainelDoComerciante = async (req, res) => {
 
 async function criarProduto(req, res) {
   try {
-    const { nome, descricao, categoria, preco, estoque } = req.body;
+    // 🔥 Puxando também o usuario_id para o Plano B
+    const { nome, descricao, categoria, preco, estoque, empresa_id, usuario_id } = req.body;
     const imagem = req.file; 
 
     const produtoSalvo = await comercianteService.salvarProduto({
-      nome, descricao, categoria, preco: Number(preco), estoque: Number(estoque), imagem
+      nome, 
+      descricao, 
+      categoria, 
+      preco: Number(preco), 
+      estoque: Number(estoque), 
+      imagem,
+      empresa_id,
+      usuario_id // 🔥 Repassa o Plano B
     });
 
     return res.status(201).json({ mensagem: 'Produto cadastrado com sucesso!', produto: produtoSalvo });
   } catch (erro) {
     console.error("Erro no controller:", erro);
-    return res.status(500).json({ erro: 'Erro interno ao cadastrar produto.' });
+    return res.status(500).json({ erro: erro.message || 'Erro interno ao cadastrar produto.' });
   }
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../config/supabase";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
   BiStore,
@@ -19,13 +20,14 @@ import {
   BiCommentDetail,
   BiTrash,
   BiStar,
-  BiX
+  BiX,
+  BiCamera,
+  BiSave
 } from "react-icons/bi";
-
-import { useNavigate } from "react-router-dom";
 
 function PainelComerciante() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const dataAtual = new Date();
   const trintaDiasAtras = new Date();
@@ -45,62 +47,83 @@ function PainelComerciante() {
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [avaliacoes, setAvaliacoes] = useState([]);
 
+  // 🔥 ESTADOS NOVOS PARA O MODAL DE EDIÇÃO DE PRODUTO
+  const [modalEditarAberto, setModalEditarAberto] = useState(false);
+  const [editNome, setEditNome] = useState("");
+  const [editDescricao, setEditDescricao] = useState("");
+  const [editCategoria, setEditCategoria] = useState("");
+  const [editPreco, setEditPreco] = useState("");
+  const [editEstoque, setEditEstoque] = useState("");
+  const [editImagem, setEditImagem] = useState(null);
+  const [editImagemPreview, setEditImagemPreview] = useState("");
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+
   useEffect(() => {
     async function carregarDados() {
-      // 1. Carregar Empresas (Ranking)
-      const { data: dadosEmpresas } = await supabase
-        .from("estabelecimentos")
-        .select("id, nome");
-
-      if (dadosEmpresas) {
-        const empresasFormatadas = dadosEmpresas.map((item) => ({
-          id: item.id,
-          nome: item.nome,
-          categoria: "Comércio",
-          vendas: Math.floor(Math.random() * 400),
-          nota: (4 + Math.random()).toFixed(1),
-        }));
-        setEmpresas(empresasFormatadas);
+      if (!id || id === "undefined") {
+        console.warn("ID da loja não encontrado na URL.");
+        return;
       }
 
-      // 2. Carregar Produtos da Empresa
-      const { data: dadosProdutos } = await supabase
-        .from("produtos")
-        .select("*")
-        .order("id", { ascending: false });
+      try {
+        // 1. Carregar Empresas (Ranking)
+        const { data: dadosEmpresas } = await supabase
+          .from("estabelecimentos")
+          .select("id, nome");
 
-      if (dadosProdutos) {
-        setProdutos(dadosProdutos);
-      }
+        if (dadosEmpresas) {
+          const empresasFormatadas = dadosEmpresas.map((item) => ({
+            id: item.id,
+            nome: item.nome,
+            categoria: "Comércio",
+            vendas: Math.floor(Math.random() * 400),
+            nota: (4 + Math.random()).toFixed(1),
+          }));
+          setEmpresas(empresasFormatadas);
+        }
 
-      // 3. Carregar Pedidos no intervalo de datas
-      const { data: dadosPedidos } = await supabase
-        .from("pedidos")
-        .select(`id, status, criado_em, usuario_id`)
-        .gte("criado_em", `${dataInicio}T00:00:00.000Z`)
-        .lte("criado_em", `${dataFim}T23:59:59.999Z`)
-        .order("criado_em", { ascending: false });
+        // 2. Carregar Produtos APENAS desta Empresa
+        const { data: dadosProdutos, error: erroProdutos } = await supabase
+          .from("produtos")
+          .select("*")
+          .eq("empresa_id", id)
+          .order("id", { ascending: false });
 
-      if (dadosPedidos) {
-        setPedidos(dadosPedidos);
-      }
+        if (erroProdutos) throw erroProdutos;
+        if (dadosProdutos) setProdutos(dadosProdutos);
 
-      // 4. Calcular Faturamento
-      const { data: dadosPagamentos } = await supabase
-        .from("pagamentos")
-        .select("valor, pedidos!inner(criado_em)")
-        .gte("pedidos.criado_em", `${dataInicio}T00:00:00.000Z`)
-        .lte("pedidos.criado_em", `${dataFim}T23:59:59.999Z`)
-        .eq("status", "aprovado"); 
+        // 3. Carregar Pedidos SEM buscar colunas inexistentes e FILTRADOS pela loja
+        const { data: dadosPedidos, error: errorPedidos } = await supabase
+          .from("pedidos")
+          .select("id, status, criado_em") 
+          .eq("empresa_id", id) 
+          .gte("criado_em", `${dataInicio}T00:00:00.000Z`)
+          .lte("criado_em", `${dataFim}T23:59:59.999Z`)
+          .order("criado_em", { ascending: false });
+          
+        if (errorPedidos) throw errorPedidos;
+        if (dadosPedidos) setPedidos(dadosPedidos);
 
-      if (dadosPagamentos) {
-        const total = dadosPagamentos.reduce((acc, curr) => acc + Number(curr.valor), 0);
-        setFaturamentoTotal(total);
+        // 4. Calcular Faturamento
+        const { data: dadosPagamentos } = await supabase
+          .from("pagamentos")
+          .select("valor, pedidos!inner(criado_em)")
+          .gte("pedidos.criado_em", `${dataInicio}T00:00:00.000Z`)
+          .lte("pedidos.criado_em", `${dataFim}T23:59:59.999Z`)
+          .eq("status", "aprovado"); 
+
+        if (dadosPagamentos) {
+          const total = dadosPagamentos.reduce((acc, curr) => acc + Number(curr.valor), 0);
+          setFaturamentoTotal(total);
+        }
+
+      } catch (error) {
+        console.error("Erro ao buscar os dados do banco:", error.message);
       }
     }
 
     carregarDados();
-  }, [dataInicio, dataFim]);
+  }, [dataInicio, dataFim, id]);
 
   async function concluirPedido(pedidoId) {
     const { error } = await supabase
@@ -124,9 +147,8 @@ function PainelComerciante() {
     setProdutoSelecionado(produto);
     setModalAvaliacoesAberto(true);
     
-    // Busca as avaliações no banco. Adapte os nomes das colunas conforme sua tabela "avaliacoes"
     const { data, error } = await supabase
-      .from("avaliacoes")
+      .from("avaliacoes_produtos")
       .select("*")
       .eq("produto_id", produto.id)
       .order("criado_em", { ascending: false });
@@ -149,16 +171,103 @@ function PainelComerciante() {
     if (!confirmar) return;
 
     const { error } = await supabase
-      .from("avaliacoes")
+      .from("avaliacoes_produtos")
       .delete()
       .eq("id", id);
 
     if (!error) {
-      // Remove da tela imediatamente
       setAvaliacoes((prev) => prev.filter((av) => av.id !== id));
     } else {
       alert("Erro ao apagar a avaliação.");
       console.error(error);
+    }
+  }
+
+  // 🔥 LÓGICA COMPLETA DE EDIÇÃO DE PRODUTO INDEPENDENTE
+  function abrirModalEditar(produto) {
+    setProdutoSelecionado(produto);
+    setEditNome(produto.nome || "");
+    setEditDescricao(produto.descricao || "");
+    setEditCategoria(produto.categoria || "");
+    setEditPreco(produto.preco ? String(produto.preco) : "");
+    setEditEstoque(produto.estoque ? String(produto.estoque) : "");
+    setEditImagemPreview(produto.imagem_url || "");
+    setEditImagem(null);
+    setModalEditarAberto(true);
+  }
+
+  function fecharModalEditar() {
+    setModalEditarAberto(false);
+    setProdutoSelecionado(null);
+    setEditImagemPreview("");
+    setEditImagem(null);
+  }
+
+  async function handleSalvarEdicaoProduto() {
+    if (!editNome || !editPreco) {
+      alert("Nome e preço são obrigatórios.");
+      return;
+    }
+
+    setSalvandoEdicao(true);
+    try {
+      let finalImagemUrl = produtoSelecionado.imagem_url;
+
+      // Se o usuário selecionou uma nova foto
+      if (editImagem) {
+        const nomeArquivo = `${Date.now()}-${editImagem.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("produtos")
+          .upload(nomeArquivo, editImagem);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from("produtos")
+          .getPublicUrl(nomeArquivo);
+
+        finalImagemUrl = data.publicUrl;
+      }
+
+      // Atualiza os dados na tabela do Supabase
+      const { error: updateError } = await supabase
+        .from("produtos")
+        .update({
+          nome: editNome,
+          descricao: editDescricao,
+          categoria: editCategoria,
+          preco: Number(editPreco),
+          estoque: Number(editEstoque),
+          imagem_url: finalImagemUrl
+        })
+        .eq("id", produtoSelecionado.id);
+
+      if (updateError) throw updateError;
+
+      // Sincroniza o estado do frontend imediatamente
+      setProdutos((prev) =>
+        prev.map((p) =>
+          p.id === produtoSelecionado.id
+            ? {
+                ...p,
+                nome: editNome,
+                descricao: editDescricao,
+                categoria: editCategoria,
+                preco: Number(editPreco),
+                estoque: Number(editEstoque),
+                imagem_url: finalImagemUrl
+              }
+            : p
+        )
+      );
+
+      alert("Produto atualizado com sucesso!");
+      fecharModalEditar();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao salvar alterações do produto.");
+    } finally {
+      setSalvandoEdicao(false);
     }
   }
 
@@ -218,7 +327,7 @@ function PainelComerciante() {
         </button>
       </div>
 
-      {/* DASHBOARD */}
+      {/* DASHBOARD CARD METRICS */}
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         <div className="bg-gradient-to-br from-purple-600 to-purple-900 rounded-3xl p-6 shadow-xl">
           <div className="flex items-center justify-between mb-5">
@@ -345,7 +454,6 @@ function PainelComerciante() {
                 key={produto.id} 
                 className="bg-[#120124] rounded-3xl overflow-hidden border border-white/10 hover:border-purple-500 hover:-translate-y-1 transition duration-300 flex flex-col shadow-lg"
               >
-                {/* Imagem do Produto */}
                 <div className="h-48 bg-black/40 relative flex items-center justify-center overflow-hidden">
                   {produto.imagem_url ? (
                     <img src={produto.imagem_url} alt={produto.nome} className="w-full h-full object-cover" />
@@ -357,7 +465,6 @@ function PainelComerciante() {
                   </div>
                 </div>
 
-                {/* Detalhes do Produto */}
                 <div className="p-6 flex-1 flex flex-col">
                   <h3 className="text-2xl font-bold mb-1 leading-tight">{produto.nome}</h3>
                   <p className="text-gray-400 text-sm line-clamp-2 mb-4">
@@ -383,10 +490,10 @@ function PainelComerciante() {
                     </div>
                   </div>
 
-                  {/* Botões de Ação do Produto */}
                   <div className="flex gap-3 mt-6">
+                    {/* 🔥 MODIFICADO: Agora abre o modal de edição na própria página */}
                     <button 
-                      onClick={() => navigate(`/editar-produto/${produto.id}`)}
+                      onClick={() => abrirModalEditar(produto)}
                       className="flex-1 bg-white/5 hover:bg-purple-600 transition-colors py-3 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm"
                     >
                       <BiEdit className="text-lg" /> Editar
@@ -408,7 +515,6 @@ function PainelComerciante() {
 
       {/* BANNER + RANKING */}
       <div className="grid xl:grid-cols-[420px_1fr] gap-6 mt-8">
-        {/* BANNER */}
         <div className="bg-[#120124] rounded-3xl p-6 border border-white/10">
           <div className="flex items-center gap-3 mb-6">
             <BiImageAdd className="text-4xl text-purple-400" />
@@ -440,7 +546,6 @@ function PainelComerciante() {
           </label>
         </div>
 
-        {/* RANKING */}
         <div className="bg-[#120124] rounded-3xl p-6 border border-white/10">
           <div className="flex items-center gap-3 mb-8">
             <BiMedal className="text-4xl text-yellow-400" />
@@ -475,8 +580,6 @@ function PainelComerciante() {
       {modalAvaliacoesAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#120124] w-full max-w-2xl rounded-[30px] border border-white/10 flex flex-col max-h-[85vh] shadow-2xl">
-            
-            {/* Header do Modal */}
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-purple-600/20 p-3 rounded-xl text-purple-400">
@@ -495,7 +598,6 @@ function PainelComerciante() {
               </button>
             </div>
 
-            {/* Corpo do Modal */}
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
               {avaliacoes.length === 0 ? (
                 <div className="text-center py-16">
@@ -507,8 +609,6 @@ function PainelComerciante() {
                 <div className="space-y-4">
                   {avaliacoes.map((avaliacao) => (
                     <div key={avaliacao.id} className="bg-white/5 p-5 rounded-2xl flex gap-4 border border-white/5 relative group">
-                      
-                      {/* Avatar do Usuário */}
                       <div className="w-12 h-12 bg-gradient-to-tr from-purple-500 to-cyan-500 rounded-full flex items-center justify-center text-xl font-bold shadow-lg shrink-0">
                         {avaliacao.nome_usuario ? avaliacao.nome_usuario.charAt(0).toUpperCase() : "U"}
                       </div>
@@ -516,8 +616,6 @@ function PainelComerciante() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="font-bold text-lg">{avaliacao.nome_usuario || "Usuário Anônimo"}</h4>
-                          
-                          {/* Botão de Apagar */}
                           <button 
                             onClick={() => apagarAvaliacao(avaliacao.id)} 
                             title="Apagar Avaliação"
@@ -528,7 +626,6 @@ function PainelComerciante() {
                         </div>
                         
                         <div className="flex text-yellow-400 text-sm mb-3">
-                           {/* Exibe a nota (Assumindo que seja de 1 a 5) */}
                            <span className="bg-yellow-500/20 px-2 py-0.5 rounded flex items-center gap-1 font-bold">
                              <BiStar /> {avaliacao.nota || 5}.0
                            </span>
@@ -538,7 +635,6 @@ function PainelComerciante() {
                           {avaliacao.comentario || "Nenhum comentário escrito."}
                         </p>
                         
-                        {/* Imagem da Avaliação */}
                         {avaliacao.foto_url && (
                           <div className="mt-4">
                             <img 
@@ -557,6 +653,181 @@ function PainelComerciante() {
           </div>
         </div>
       )}
+
+      {/* 🔥 NOVO: MODAL INTERATIVO DE EDIÇÃO DE PRODUTO COMPLETO 🔥 */}
+      {modalEditarAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#120124] w-full max-w-4xl rounded-[30px] border border-white/10 flex flex-col max-h-[90vh] shadow-2xl overflow-hidden">
+            
+            {/* Header */}
+            <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-600 p-3 rounded-xl text-white">
+                  <BiPackage className="text-2xl" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Editar Produto</h2>
+                  <p className="text-gray-400 text-sm mt-0.5">Altere as informações do produto selecionado</p>
+                </div>
+              </div>
+              <button 
+                onClick={fecharModalEditar} 
+                className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center transition"
+              >
+                <BiX className="text-2xl" />
+              </button>
+            </div>
+
+            {/* Content Body Grid */}
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 grid md:grid-cols-2 gap-6 bg-[#0e021d]">
+              
+              {/* Lado Esquerdo: Formulário */}
+              <div className="bg-white text-black p-5 rounded-2xl shadow-lg flex flex-col gap-4 h-fit">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-1">Nome do Produto</label>
+                  <input
+                    type="text"
+                    placeholder="Nome do produto"
+                    value={editNome}
+                    onChange={(e) => setEditNome(e.target.value)}
+                    className="w-full p-3 border rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-1">Descrição</label>
+                  <textarea
+                    placeholder="Descrição"
+                    value={editDescricao}
+                    onChange={(e) => setEditDescricao(e.target.value)}
+                    className="w-full p-3 border rounded min-h-[90px] focus:ring-2 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-1">Categoria</label>
+                  <select
+                    value={editCategoria}
+                    onChange={(e) => setEditCategoria(e.target.value)}
+                    className="w-full p-3 border rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                  >
+                    <option value="">Selecione a categoria</option>
+                    <option>Bebidas</option>
+                    <option>Lanches</option>
+                    <option>Doces</option>
+                    <option>Mercado</option>
+                    <option>Eletrônicos</option>
+                    <option>Roupas</option>
+                    <option>Outros</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-1">Preço (R$)</label>
+                    <input
+                      type="number"
+                      placeholder="Preço"
+                      value={editPreco}
+                      onChange={(e) => setEditPreco(e.target.value)}
+                      className="w-full p-3 border rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-1">Estoque</label>
+                    <input
+                      type="number"
+                      placeholder="Estoque"
+                      value={editEstoque}
+                      onChange={(e) => setEditEstoque(e.target.value)}
+                      className="w-full p-3 border rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-1">Foto do Produto</label>
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-purple-500 transition">
+                    <BiCamera className="text-3xl mb-1 text-gray-600" />
+                    <span className="text-sm text-gray-600 font-medium">{editImagem ? editImagem.name : "Alterar imagem do produto"}</span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setEditImagem(file);
+                          setEditImagemPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Lado Direito: Preview em tempo real */}
+              <div className="bg-white text-black rounded-2xl shadow-lg overflow-hidden flex flex-col h-fit">
+                <div className="h-56 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                  {editImagemPreview ? (
+                    <img
+                      src={editImagemPreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <BiPackage className="text-7xl text-gray-400" />
+                  )}
+                </div>
+
+                <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+                  <div>
+                    <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">
+                      {editCategoria || "Categoria"}
+                    </span>
+                    <h2 className="text-2xl font-bold mt-2 truncate">
+                      {editNome || "Nome do Produto"}
+                    </h2>
+                    <p className="text-gray-600 text-sm mt-1 whitespace-pre-wrap min-h-[40px] line-clamp-3">
+                      {editDescricao || "Descrição do produto..."}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between items-center border-t border-gray-100 pt-3">
+                    <div className="text-green-600 font-bold text-2xl">
+                      {Number(editPreco || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </div>
+                    <span className="bg-gray-200 px-3 py-1 rounded-lg font-semibold text-sm">
+                      Estoque: {editEstoque || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 border-t border-white/10 flex justify-end gap-3 bg-black/20">
+              <button
+                onClick={fecharModalEditar}
+                disabled={salvandoEdicao}
+                className="bg-white/5 hover:bg-white/10 text-white transition px-5 py-2.5 rounded-xl font-semibold border border-white/10 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSalvarEdicaoProduto}
+                disabled={salvandoEdicao}
+                className="bg-purple-600 hover:bg-purple-500 text-white transition px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg disabled:opacity-50"
+              >
+                <BiSave className="text-lg" />
+                {salvandoEdicao ? "Salvando..." : "Salvar Alterações"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

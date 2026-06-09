@@ -7,7 +7,6 @@ import {
   BiSearch,
   BiCamera,
   BiSave,
-  BiStar,
   BiArrowBack,
 } from "react-icons/bi";
 
@@ -23,7 +22,6 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-/* 🔥 ÍCONE CORRIGIDO */
 const icon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -32,53 +30,43 @@ const icon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-/* 🔥 MAPA */
 function AtualizarMapa({ posicao }) {
   const map = useMap();
-
   useEffect(() => {
     map.flyTo(posicao, 15);
     setTimeout(() => map.invalidateSize(), 200);
   }, [posicao]);
-
   return null;
 }
 
-/* 🔥 CLICK */
-function SelecionarLocal({
-  setPosicao,
-  setMostrarPopup,
-  setEndereco,
-  setCidade,
-}) {
+// 🔥 CORREÇÃO: Recebendo o setCep aqui
+function SelecionarLocal({ setPosicao, setMostrarPopup, setEndereco, setCidade, setCep }) {
   useMapEvents({
     async click(e) {
       const { lat, lng } = e.latlng;
-
       setPosicao([lat, lng]);
       setMostrarPopup(true);
 
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-        );
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
         const data = await res.json();
-
         if (data.address) {
           setEndereco(data.address.road || "");
-          setCidade(
-            data.address.city ||
-              data.address.town ||
-              data.address.village ||
-              ""
-          );
+          setCidade(data.address.city || data.address.town || data.address.village || "");
+          
+          // 🔥 PEGANDO O CEP DO MAPA (limpando o traço para ficar só números)
+          if (data.address.postcode) {
+            const cepEncontrado = data.address.postcode.replace(/\D/g, '');
+            setCep(cepEncontrado);
+          } else {
+            setCep("");
+          }
         }
       } catch (err) {
         console.log(err);
       }
     },
   });
-
   return null;
 }
 
@@ -96,53 +84,108 @@ function CadEstabelecimento() {
   const [posicao, setPosicao] = useState([-12.9386, -38.4319]);
   const [mostrarPopup, setMostrarPopup] = useState(false);
 
+  // GUARDA O ID DA EMPRESA
+  const [empresaId, setEmpresaId] = useState(null);
+
+  // TRAVA DE SEGURANÇA
+  useEffect(() => {
+    async function verificarEmpresa() {
+      const userStr = localStorage.getItem("usuario");
+      
+      if (!userStr || userStr === "undefined") {
+        localStorage.removeItem("usuario"); 
+        navigate("/login");
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userStr);
+
+        const { data: empresaData } = await supabase
+          .from("empresas")
+          .select("id")
+          .eq("usuario_id", user.id)
+          .single();
+
+        if (empresaData && empresaData.id) {
+          setEmpresaId(empresaData.id);
+
+          const { data: estabData } = await supabase
+            .from("estabelecimentos")
+            .select("id")
+            .eq("empresa_id", empresaData.id)
+            .maybeSingle();
+
+          if (estabData) {
+            navigate(`/painel-comerciante/${empresaData.id}`);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao analisar o usuário:", error);
+        localStorage.removeItem("usuario");
+        navigate("/login");
+      }
+    }
+
+    verificarEmpresa();
+  }, [navigate]);
+
   async function buscarCep() {
     if (!cep) return;
 
-    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const dados = await res.json();
+    const cepLimpo = cep.replace(/\D/g, '');
 
-    const enderecoCompleto = `${dados.logradouro}, ${dados.localidade}, ${dados.uf}, Brasil`;
+    if (cepLimpo.length !== 8) {
+      alert("Por favor, digite um CEP válido contendo 8 números.");
+      return;
+    }
 
-    const geo = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        enderecoCompleto
-      )}`
-    );
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const dados = await res.json();
 
-    const geoData = await geo.json();
+      if (dados.erro) {
+        alert("CEP não encontrado.");
+        return;
+      }
 
-    if (geoData.length > 0) {
-      setPosicao([
-        parseFloat(geoData[0].lat),
-        parseFloat(geoData[0].lon),
-      ]);
+      const enderecoCompleto = `${dados.logradouro}, ${dados.localidade}, ${dados.uf}, Brasil`;
 
-      setEndereco(dados.logradouro);
-      setCidade(dados.localidade);
-      setMostrarPopup(true);
+      const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(enderecoCompleto)}`);
+      const geoData = await geo.json();
+
+      if (geoData.length > 0) {
+        setPosicao([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)]);
+        setEndereco(dados.logradouro);
+        setCidade(dados.localidade);
+        setMostrarPopup(true);
+      } else {
+        alert("Não foi possível encontrar este endereço no mapa.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+      alert("Erro ao buscar o CEP. Verifique sua conexão e tente novamente.");
     }
   }
 
   async function salvarEstabelecimento() {
+    if (!empresaId) {
+      alert("Erro de autenticação. Faça login novamente.");
+      return;
+    }
+
     let imagemUrl = "";
 
     if (imagem) {
       const nomeArquivo = `${Date.now()}-${imagem.name}`;
-
-      await supabase.storage
-        .from("estabelecimentos")
-        .upload(nomeArquivo, imagem);
-
-      const { data } = supabase.storage
-        .from("estabelecimentos")
-        .getPublicUrl(nomeArquivo);
-
+      await supabase.storage.from("estabelecimentos").upload(nomeArquivo, imagem);
+      const { data } = supabase.storage.from("estabelecimentos").getPublicUrl(nomeArquivo);
       imagemUrl = data.publicUrl;
     }
 
-    await supabase.from("estabelecimentos").insert([
+    const { error } = await supabase.from("estabelecimentos").insert([
       {
+        empresa_id: empresaId, 
         nome,
         descricao,
         categoria,
@@ -155,16 +198,18 @@ function CadEstabelecimento() {
       },
     ]);
 
-    alert("Estabelecimento cadastrado!");
+    if (error) {
+      alert("Erro ao salvar: " + error.message);
+    } else {
+      alert("Estabelecimento salvo no mapa!");
+      navigate(`/painel-comerciante/${empresaId}`); 
+    }
   }
 
   return (
     <div className="pt-28 px-6 pb-20 bg-[#070014] min-h-screen text-white">
-
-      {/* 🔥 HEADER COM BOTÃO VOLTAR */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-
           <button
             onClick={() => navigate("/home")}
             className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition"
@@ -177,37 +222,27 @@ function CadEstabelecimento() {
             <div className="bg-purple-600 p-2 rounded-xl shadow">
               <BiStore className="text-2xl text-white" />
             </div>
-
             <div>
-              <h2 className="text-2xl font-bold">
-                Cadastro de Estabelecimento
-              </h2>
-              <p className="text-sm text-gray-400">
-                Adicione seu comércio no mapa
-              </p>
+              <h2 className="text-2xl font-bold">Cadastro de Estabelecimento</h2>
+              <p className="text-sm text-gray-400">Adicione seu comércio no mapa</p>
             </div>
           </div>
-
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-
         {/* FORM */}
         <div className="bg-white text-black p-6 rounded-2xl shadow-lg">
-
           <input
             placeholder="Nome da loja"
             className="w-full p-3 mb-3 border rounded"
             onChange={(e) => setNome(e.target.value)}
           />
-
           <textarea
             placeholder="Descrição"
             className="w-full p-3 mb-3 border rounded"
             onChange={(e) => setDescricao(e.target.value)}
           />
-
           <select
             className="w-full p-3 mb-3 border rounded"
             onChange={(e) => setCategoria(e.target.value)}
@@ -222,42 +257,40 @@ function CadEstabelecimento() {
             <option>Eletrônicos</option>
             <option>Autopeças</option>
             <option>Outros</option>
-
           </select>
-
           <input
             placeholder="Endereço"
             className="w-full p-3 mb-3 border rounded"
             value={endereco}
             onChange={(e) => setEndereco(e.target.value)}
           />
-
           <input
             placeholder="Cidade"
             className="w-full p-3 mb-3 border rounded"
             value={cidade}
             onChange={(e) => setCidade(e.target.value)}
           />
+          
+          {/* Campo CEP */}
+          <div className="flex gap-2 mb-3">
+            <input
+              placeholder="Digite o CEP (somente números)"
+              className="w-full p-3 border rounded"
+              maxLength={8}
+              value={cep} // 🔥 ADICIONADO PARA MOSTRAR NA TELA O CEP VINDO DO MAPA
+              onChange={(e) => setCep(e.target.value)}
+            />
+            <button
+              onClick={buscarCep}
+              className="bg-indigo-500 text-white px-4 rounded font-bold hover:bg-indigo-600 transition flex items-center justify-center gap-1"
+            >
+              <BiSearch /> Buscar
+            </button>
+          </div>
 
-          <input
-            placeholder="CEP"
-            className="w-full p-3 mb-3 border rounded"
-            onChange={(e) => setCep(e.target.value)}
-          />
-
-          <button
-            onClick={buscarCep}
-            className="w-full bg-indigo-500 text-white p-2 rounded mb-3"
-          >
-            <BiSearch className="inline mr-1" />
-            Buscar
-          </button>
-
-          {/* UPLOAD */}
-          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer hover:border-purple-500">
+          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer hover:border-purple-500 mt-2">
             <BiCamera className="text-3xl mb-2" />
-            <span>Adicionar foto</span>
-
+            <span>Adicionar foto da faixada</span>
             <input
               type="file"
               className="hidden"
@@ -267,10 +300,9 @@ function CadEstabelecimento() {
 
           <button
             onClick={salvarEstabelecimento}
-            className="w-full bg-purple-600 text-white p-3 rounded mt-4 flex items-center justify-center gap-2"
+            className="w-full bg-purple-600 text-white p-3 rounded mt-4 flex items-center justify-center gap-2 font-bold hover:bg-purple-700 transition"
           >
-            <BiSave />
-            Salvar
+            <BiSave /> Salvar e Ir para o Painel
           </button>
         </div>
 
@@ -279,16 +311,14 @@ function CadEstabelecimento() {
           <div className="h-[70vh] w-full rounded-xl overflow-hidden">
             <MapContainer center={posicao} zoom={15} className="h-full w-full">
               <AtualizarMapa posicao={posicao} />
-
               <SelecionarLocal
                 setPosicao={setPosicao}
                 setMostrarPopup={setMostrarPopup}
                 setEndereco={setEndereco}
                 setCidade={setCidade}
+                setCep={setCep} // 🔥 ENVIANDO O STATE DO CEP PARA O MAPA
               />
-
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
               <Marker position={posicao} icon={icon}>
                 {mostrarPopup && (
                   <Popup>
@@ -297,26 +327,16 @@ function CadEstabelecimento() {
                         {imagem ? (
                           <img
                             src={URL.createObjectURL(imagem)}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              borderRadius: "8px",
-                            }}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }}
                           />
                         ) : (
-                          <div style={{ textAlign: "center" }}>
-                            Sem imagem
-                          </div>
+                          <div style={{ textAlign: "center", paddingTop: "40px", color: "gray" }}>Sem imagem</div>
                         )}
                       </div>
-
-                      <strong>{nome || "Novo estabelecimento"}</strong>
+                      <strong>{nome || "Seu estabelecimento"}</strong>
                       <br />
-                      <small>{categoria}</small>
-                      <p style={{ fontSize: "12px" }}>
-                        {descricao || "Descrição..."}
-                      </p>
+                      <small className="text-gray-500">{categoria}</small>
+                      <p style={{ fontSize: "12px", marginTop: "4px" }}>{descricao || "Descrição..."}</p>
                     </div>
                   </Popup>
                 )}
@@ -324,7 +344,6 @@ function CadEstabelecimento() {
             </MapContainer>
           </div>
         </div>
-
       </div>
     </div>
   );

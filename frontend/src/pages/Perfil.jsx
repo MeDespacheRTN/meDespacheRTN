@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Save, X } from "lucide-react";
+import { Camera, Save, X, Edit2 } from "lucide-react";
 
 export default function Perfil() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
+  
+  // 🔥 ESTADO DE MODO DE EDIÇÃO
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   // States dos Inputs
   const [nome, setNome] = useState("");
@@ -17,13 +21,14 @@ export default function Perfil() {
   // State das Fotos
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const userStorage = localStorage.getItem("usuario");
     if (userStorage) {
       const user = JSON.parse(userStorage);
       setUsuario(user);
+      
+      // Preenche os campos com os dados do usuário
       setNome(user.nome || "");
       setEmail(user.email || "");
       setTelefone(user.telefone || "");
@@ -38,7 +43,21 @@ export default function Perfil() {
     if (file) {
       setFotoPerfil(file);
       setFotoPreview(URL.createObjectURL(file));
+      setIsEditing(true); // Se ele trocar a foto, ativa o modo de edição automaticamente
     }
+  };
+
+  const cancelarEdicao = () => {
+    setIsEditing(false);
+    // Restaura os dados originais se o usuário desistir de editar
+    setNome(usuario?.nome || "");
+    setEmail(usuario?.email || "");
+    setTelefone(usuario?.telefone || "");
+    setFotoPreview(usuario?.foto_url || null);
+    setFotoPerfil(null);
+    setSenhaAtual("");
+    setNovaSenha("");
+    setConfirmarSenha("");
   };
 
   const handleSalvar = async () => {
@@ -64,16 +83,22 @@ export default function Perfil() {
       if (response.ok) {
         const data = await response.json();
         alert("Perfil atualizado com sucesso!");
+        
+        // Atualiza o cache local
         localStorage.setItem("usuario", JSON.stringify(data.usuario));
+        setUsuario(data.usuario);
+        
+        // Reseta campos de senha e desativa o modo de edição
         setSenhaAtual("");
         setNovaSenha("");
         setConfirmarSenha("");
+        setIsEditing(false);
       } else {
         alert("Erro ao atualizar perfil.");
       }
     } catch (error) {
       console.error(error);
-      alert("Erro de conexão.");
+      alert("Erro de conexão com o servidor.");
     } finally {
       setLoading(false);
     }
@@ -101,16 +126,20 @@ export default function Perfil() {
                 ) : (
                   <span>{nome ? nome.charAt(0).toUpperCase() : "U"}</span>
                 )}
-                <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                  <Camera size={32} className="text-white" />
-                  <input type="file" className="hidden" accept="image/*" onChange={handleFotoChange} />
-                </label>
+                {isEditing && (
+                  <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                    <Camera size={32} className="text-white" />
+                    <input type="file" className="hidden" accept="image/*" onChange={handleFotoChange} />
+                  </label>
+                )}
               </div>
 
-              <label className="bg-purple-600 hover:bg-purple-700 cursor-pointer transition px-5 py-2 rounded-xl font-medium shadow-lg flex items-center gap-2">
-                <Camera size={16} /> Alterar Foto
-                <input type="file" className="hidden" accept="image/*" onChange={handleFotoChange} />
-              </label>
+              {isEditing && (
+                <label className="bg-purple-600 hover:bg-purple-700 cursor-pointer transition px-5 py-2 rounded-xl font-medium shadow-lg flex items-center gap-2">
+                  <Camera size={16} /> Alterar Foto
+                  <input type="file" className="hidden" accept="image/*" onChange={handleFotoChange} />
+                </label>
+              )}
             </div>
 
             {/* INFORMAÇÕES DO TOPO */}
@@ -118,52 +147,54 @@ export default function Perfil() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
                   <h1 className="text-3xl md:text-5xl font-bold">
-                    {usuario?.tipo === "comerciante" ? "Comerciante" : "Cliente"}
+                    {usuario?.nome || "Carregando..."}
                   </h1>
                   <p className="text-purple-300 mt-2 text-sm sm:text-base">
-                    {usuario?.tipo === "comerciante" ? "Comerciante" : "Cliente"} Premium • Salvador - BA
+                    {usuario?.tipo === "comerciante" ? "Comerciante Premium" : "Cliente Premium"} • Salvador - BA
                   </p>
                 </div>
-                <button className="bg-indigo-500 hover:bg-indigo-600 transition px-6 py-3 rounded-2xl font-semibold shadow-lg">
-                  Editar Perfil
-                </button>
+                
+                {/* BOTÃO ATIVAR MODO EDIÇÃO */}
+                {!isEditing && (
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    className="bg-indigo-500 hover:bg-indigo-600 transition px-6 py-3 rounded-2xl font-semibold shadow-lg flex items-center gap-2"
+                  >
+                    <Edit2 size={18} /> Editar Perfil
+                  </button>
+                )}
               </div>
-              <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
-                Apaixonado por tecnologia, design moderno e experiências digitais.
-                Utilizando o Me Despache para encontrar os melhores estabelecimentos,
-                avaliações e promoções da cidade.
+              <p className="text-gray-300 leading-relaxed text-sm sm:text-base max-w-3xl">
+                Gerencie as informações da sua conta, adicione uma foto de perfil ou altere sua senha de acesso.
               </p>
             </div>
           </div>
         </section>
 
-        {/* 🔥 SEUS CARDS RESTAURADOS EXATAMENTE AQUI 🔥 */}
+        {/* ESTATÍSTICAS (OPCIONAIS) */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
           <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl">
             <p className="text-purple-300 text-sm mb-2">Pedidos</p>
             <h2 className="text-4xl font-bold">128</h2>
           </div>
-
           <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl">
             <p className="text-purple-300 text-sm mb-2">Avaliações</p>
             <h2 className="text-4xl font-bold">46</h2>
           </div>
-
           <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl">
             <p className="text-purple-300 text-sm mb-2">Favoritos</p>
             <h2 className="text-4xl font-bold">18</h2>
           </div>
-
           <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl">
             <p className="text-purple-300 text-sm mb-2">Pontos</p>
             <h2 className="text-4xl font-bold">2.340</h2>
           </div>
         </section>
 
-        {/* SEÇÃO DOS INPUTS EDITÁVEIS */}
+        {/* SEÇÃO DOS INPUTS */}
         <section className="grid lg:grid-cols-2 gap-8 mb-8">
           {/* DADOS PESSOAIS */}
-          <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl">
+          <div className={`backdrop-blur-xl border rounded-3xl p-6 shadow-xl transition-colors duration-300 ${isEditing ? 'bg-white/15 border-purple-500/50' : 'bg-white/5 border-white/10'}`}>
             <h2 className="text-2xl font-bold mb-6">Informações Pessoais</h2>
             <div className="space-y-5">
               <div>
@@ -171,9 +202,10 @@ export default function Perfil() {
                 <input
                   type="text"
                   value={nome}
+                  disabled={!isEditing}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -182,9 +214,10 @@ export default function Perfil() {
                 <input
                   type="email"
                   value={email}
+                  disabled={!isEditing}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seuemail@gmail.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -193,26 +226,28 @@ export default function Perfil() {
                 <input
                   type="text"
                   value={telefone}
+                  disabled={!isEditing}
                   onChange={(e) => setTelefone(e.target.value)}
                   placeholder="(71) 99999-9999"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
           </div>
 
           {/* SEGURANÇA */}
-          <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl">
+          <div className={`backdrop-blur-xl border rounded-3xl p-6 shadow-xl transition-colors duration-300 ${isEditing ? 'bg-white/15 border-purple-500/50' : 'bg-white/5 border-white/10'}`}>
             <h2 className="text-2xl font-bold mb-6">Segurança</h2>
             <div className="space-y-5">
               <div>
-                <label className="text-sm text-purple-300 block mb-2">Senha Atual</label>
+                <label className="text-sm text-purple-300 block mb-2">Senha Atual (Opcional)</label>
                 <input
                   type="password"
                   value={senhaAtual}
+                  disabled={!isEditing}
                   onChange={(e) => setSenhaAtual(e.target.value)}
                   placeholder="********"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -221,54 +256,59 @@ export default function Perfil() {
                 <input
                   type="password"
                   value={novaSenha}
+                  disabled={!isEditing}
                   onChange={(e) => setNovaSenha(e.target.value)}
                   placeholder="********"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="text-sm text-purple-300 block mb-2">Confirmar Senha</label>
+                <label className="text-sm text-purple-300 block mb-2">Confirmar Nova Senha</label>
                 <input
                   type="password"
                   value={confirmarSenha}
+                  disabled={!isEditing}
                   onChange={(e) => setConfirmarSenha(e.target.value)}
                   placeholder="********"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-purple-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
           </div>
         </section>
 
-        {/* AÇÕES DE SALVAR */}
-        <section className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl">
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Preferências da Conta</h2>
-              <p className="text-gray-300 mt-2 text-sm sm:text-base">
-                Gerencie notificações, aparência e salve as configurações da sua conta.
-              </p>
-            </div>
+        {/* AÇÕES DE SALVAR (SÓ APARECEM NO MODO DE EDIÇÃO) */}
+        {isEditing && (
+          <section className="bg-white/10 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-6 shadow-xl animate-fade-in-up">
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-purple-100">Salvar Alterações</h2>
+                <p className="text-gray-300 mt-1 text-sm">
+                  Confirme para aplicar as novas informações à sua conta.
+                </p>
+              </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button 
-                onClick={() => navigate(-1)} 
-                className="bg-white/10 hover:bg-white/20 transition px-6 py-3 rounded-2xl font-medium border border-white/10 flex items-center justify-center gap-2"
-              >
-                <X size={18} /> Cancelar
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button 
+                  onClick={cancelarEdicao} 
+                  disabled={loading}
+                  className="bg-white/10 hover:bg-red-500/20 text-white hover:text-red-400 transition px-6 py-3 rounded-2xl font-medium border border-white/10 hover:border-red-500/30 flex items-center justify-center gap-2"
+                >
+                  <X size={18} /> Cancelar
+                </button>
 
-              <button 
-                onClick={handleSalvar}
-                disabled={loading}
-                className="bg-purple-600 hover:bg-purple-700 text-white transition px-6 py-3 rounded-2xl font-semibold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loading ? "Salvando..." : <><Save size={18} /> Salvar Alterações</>}
-              </button>
+                <button 
+                  onClick={handleSalvar}
+                  disabled={loading}
+                  className="bg-purple-600 hover:bg-purple-500 text-white transition px-8 py-3 rounded-2xl font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? "Salvando..." : <><Save size={18} /> Salvar Alterações</>}
+                </button>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
       </main>
     </div>

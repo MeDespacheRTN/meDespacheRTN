@@ -25,6 +25,24 @@ const PainelDoComerciante = async (id, dataInicio, dataFim) => {
 }
 
 async function salvarProduto(dados) {
+  let idDaEmpresa = dados.empresa_id;
+
+  // 🔥 PLANO B DE SEGURANÇA MÁXIMA
+  // Se por algum motivo a internet falhou e a empresa veio vazia ou "undefined"
+  if (!idDaEmpresa || idDaEmpresa === "undefined" || idDaEmpresa === "null") {
+      if (dados.usuario_id) {
+          // O backend entra no banco, olha o ID do usuário e acha o ID da empresa dele
+          const { data: emp } = await supabase.from('empresas').select('id').eq('usuario_id', dados.usuario_id).maybeSingle();
+          if (emp) {
+              idDaEmpresa = emp.id;
+          }
+      }
+  }
+
+  if (!idDaEmpresa) {
+      throw new Error("Não foi possível identificar a sua loja no servidor. Tente relogar.");
+  }
+
   let imagemUrl = "";
 
   if (dados.imagem) {
@@ -41,6 +59,7 @@ async function salvarProduto(dados) {
   const { data: produto, error: dbError } = await supabase
     .from("produtos")
     .insert([{
+        empresa_id: idDaEmpresa, // 🔥 AGORA É IMPOSSÍVEL SER NULO!
         nome: dados.nome,
         descricao: dados.descricao,
         categoria: dados.categoria,

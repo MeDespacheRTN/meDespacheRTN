@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Map from "../components/Map";
 import { useNavigate } from "react-router-dom";
 import { Star, Package, Trophy, Gift, Crown, TrendingUp, BadgeCheck } from "lucide-react";
+import { supabase } from "../config/supabase"; // 🔥 CORREÇÃO: Importando o supabase para buscar o ID da empresa
 
 // IMPORT DAS IMAGENS
 import banner1 from "../assets/banners/banner1.png";
@@ -25,6 +26,7 @@ function Home() {
   const banners = [banner1, banner2, banner3];
 
   const [usuarioLogado, setUsuarioLogado] = useState(null);
+  const [empresaId, setEmpresaId] = useState(null); // 🔥 NOVO ESTADO: Guarda o ID da empresa real
 
   const [produtosMaisVendidos, setProdutosMaisVendidos] = useState([]);
   const [produtosBemAvaliados, setProdutosBemAvaliados] = useState([]);
@@ -35,7 +37,24 @@ function Home() {
   useEffect(() => {
     const userStorage = localStorage.getItem("usuario"); 
     if (userStorage) {
-      setUsuarioLogado(JSON.parse(userStorage));
+      const usuario = JSON.parse(userStorage);
+      setUsuarioLogado(usuario);
+
+      // 🔥 CORREÇÃO: Se for comerciante, busca o ID da empresa dele no banco
+      if (usuario.tipo === "comerciante" || usuario.role === "comerciante") {
+        async function obterIdEmpresa() {
+          const { data } = await supabase
+            .from("empresas")
+            .select("id")
+            .eq("usuario_id", usuario.id)
+            .single();
+          
+          if (data) {
+            setEmpresaId(data.id);
+          }
+        }
+        obterIdEmpresa();
+      }
     }
   }, []);
 
@@ -144,11 +163,11 @@ function Home() {
             </div>
           </div>
 
-          <button className="text-left px-4 py-3 rounded-xl text-purple-200 hover:bg-white/10 hover:text-white transition-all duration-200 hover:pl-6">Próximos</button>
-          
-          {/* Ranking Mensal */}
-          <button className="text-left px-4 py-3 rounded-xl text-purple-200 hover:bg-white/10 hover:text-white transition-all duration-200 hover:pl-6">
-            Ranking Mensal
+          <button 
+            onClick={() => navigate("/dashboard")}
+            className="text-left px-4 py-3 rounded-xl bg-purple-600/20 text-purple-200 hover:bg-purple-600/40 hover:text-white transition-all duration-200 font-bold border border-purple-500/30 flex items-center gap-2 hover:pl-6"
+          >
+            📍 Mapa e Lojas Próximas
           </button>
 
           {/* CONFIGURAÇÕES */}
@@ -163,7 +182,8 @@ function Home() {
                 <button className="text-left px-3 py-2 rounded-xl text-sm text-purple-100 hover:bg-white/10 transition">🔔 Notificações</button>
                 <button className="text-left px-3 py-2 rounded-xl text-sm text-purple-100 hover:bg-white/10 transition">🔒 Privacidade</button>
                 {(usuarioLogado?.tipo === "comerciante" || usuarioLogado?.role === "comerciante") && (
-                  <button onClick={() => navigate(`/painel-comerciante/${usuarioLogado.id || 1}`)} className="text-left px-3 py-2 rounded-xl text-sm text-purple-100 hover:bg-white/10 transition">📊 Dashboard</button>
+                  /* 🔥 CORREÇÃO: Agora usa a variável empresaId mapeada do banco, evitando IDs fantasmas */
+                  <button onClick={() => navigate(`/painel-comerciante/${empresaId || 1}`)} className="text-left px-3 py-2 rounded-xl text-sm text-purple-100 hover:bg-white/10 transition">📊 Dashboard</button>
                 )}
               </div>
             </div>
@@ -195,8 +215,13 @@ function Home() {
                 <h1 className="text-4xl md:text-6xl font-black mt-5">Bem-vindo ao <span className="block text-yellow-300">MeDespache</span></h1>
                 <p className="text-purple-100 text-lg mt-4 max-w-2xl">Encontre restaurantes, mercados, farmácias e lojas próximas.</p>
                 <div className="flex gap-4 mt-8 flex-wrap">
-                  <button className="bg-white text-purple-700 font-bold px-6 py-3 rounded-2xl">Explorar Lojas</button>
-                  <button className="border border-white/30 px-6 py-3 rounded-2xl">Ver Promoções</button>
+                  <button 
+                    onClick={() => navigate("/dashboard")}
+                    className="bg-white text-purple-700 font-bold px-6 py-3 rounded-2xl flex items-center gap-2 hover:scale-105 transition-transform"
+                  >
+                    📍 Explorar Lojas no Mapa
+                  </button>
+                  <button className="border border-white/30 px-6 py-3 rounded-2xl hover:bg-white/10 transition-colors">Ver Promoções</button>
                 </div>
               </div>
             </section>
@@ -240,9 +265,9 @@ function Home() {
                   <Gift size={16} className="text-pink-400" /> Recompensas do Top 3
                 </h3>
                 <ul className="text-xs text-gray-400 space-y-2">
-                  <li className="flex items-center gap-2"><span className="text-yellow-400 font-bold">1º</span> Taxa Zero + Selo Diamante</li>
-                  <li className="flex items-center gap-2"><span className="text-gray-300 font-bold">2º</span> Cupom 15% OFF pro App</li>
-                  <li className="flex items-center gap-2"><span className="text-amber-600 font-bold">3º</span> Destaque na Tela Inicial</li>
+                  <li className="flex items-center gap-2"><span className="text-yellow-400 font-bold">1º</span> 1 ano de assinatura Gold + Selo Gold</li>
+                  <li className="flex items-center gap-2"><span className="text-gray-300 font-bold">2º</span> 1 ano de assinatura Prata + Selo Prata</li>
+                  <li className="flex items-center gap-2"><span className="text-amber-600 font-bold">3º</span> 1 ano de assinatura Bronze + Selo Prata</li>
                 </ul>
               </div>
             </div>

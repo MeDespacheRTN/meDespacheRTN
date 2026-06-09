@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { supabase } from "../../config/supabase";
 
 import {
   BiPackage,
@@ -18,10 +19,31 @@ function CadProduto() {
   const [preco, setPreco] = useState("");
   const [estoque, setEstoque] = useState("");
   const [imagem, setImagem] = useState(null);
+  
+  const [empresaId, setEmpresaId] = useState("");
+  const [usuarioId, setUsuarioId] = useState(""); // 🔥 NOVO: Plano B para o backend
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("usuario");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setUsuarioId(user.id);
+      
+      supabase.from("empresas").select("id").eq("usuario_id", user.id).single()
+        .then(({ data }) => {
+          if (data) setEmpresaId(data.id);
+        });
+    }
+  }, []);
 
   async function salvarProduto() {
     if (!nome || !preco) {
       alert("Preencha ao menos nome e preço.");
+      return;
+    }
+    
+    if (!empresaId && !usuarioId) {
+      alert("Erro: Faça login novamente.");
       return;
     }
 
@@ -30,23 +52,24 @@ function CadProduto() {
       formData.append("nome", nome);
       formData.append("descricao", descricao);
       formData.append("categoria", categoria);
-      // Cuidado com vírgulas no preço. O ideal é enviar com ponto para o banco.
       formData.append("preco", preco.replace(",", ".")); 
       formData.append("estoque", estoque);
+      
+      // 🔥 ENVIANDO OS DOIS IDS PARA GARANTIR QUE O BACKEND ACHE A LOJA
+      formData.append("empresa_id", empresaId); 
+      formData.append("usuario_id", usuarioId);
       
       if (imagem) {
         formData.append("imagem", imagem);
       }
 
-      // O Axios faz o POST. Se der erro 500, ele pula direto pro catch lá embaixo!
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/comerciante/cadastrar-produtos`,
+        `${import.meta.env.VITE_API_URL}comerciante/cadastrar-produtos`,
         formData
       );
 
       alert("Produto cadastrado com sucesso!");
 
-      // Limpa os campos após o sucesso
       setNome("");
       setDescricao("");
       setCategoria("");
@@ -55,11 +78,10 @@ function CadProduto() {
       setImagem(null);
     } catch (err) {
       console.error("Detalhes do erro:", err);
-      alert("Erro ao cadastrar produto. Verifique o console ou o terminal do Backend.");
+      alert(err.response?.data?.erro || "Erro ao cadastrar produto. Verifique o terminal.");
     }
   }
 
-  // Função auxiliar para formatar o valor digitado para Real (BRL)
   const precoFormatado = Number(preco || 0).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -67,10 +89,9 @@ function CadProduto() {
 
   return (
     <div className="pt-28 px-6 pb-20 bg-[#070014] min-h-screen text-white">
-      {/* HEADER */}
       <div className="flex items-center gap-4 mb-8">
         <button
-          onClick={() => navigate("/painel-comerciante/1")}
+          onClick={() => navigate(`/painel-comerciante/${empresaId}`)}
           className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition"
         >
           <BiArrowBack />
@@ -88,7 +109,6 @@ function CadProduto() {
       </div>
 
       <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-6">
-        {/* FORM */}
         <div className="bg-white text-black p-6 rounded-2xl shadow-lg">
           <input
             type="text"
@@ -157,7 +177,6 @@ function CadProduto() {
           </button>
         </div>
 
-        {/* PREVIEW */}
         <div className="bg-white text-black rounded-2xl shadow-lg overflow-hidden">
           <div className="h-64 bg-gray-100 flex items-center justify-center">
             {imagem ? (
@@ -180,13 +199,11 @@ function CadProduto() {
               {nome || "Nome do Produto"}
             </h2>
 
-            {/* A classe whitespace-pre-wrap garante que as quebras de linha apareçam */}
             <p className="text-gray-600 mt-2 whitespace-pre-wrap">
               {descricao || "Descrição do produto..."}
             </p>
 
             <div className="mt-5 flex justify-between items-center">
-              {/* Preço formatado em Reais exibido aqui */}
               <div className="flex items-center gap-2 text-green-600 font-bold text-2xl">
                 {precoFormatado}
               </div>

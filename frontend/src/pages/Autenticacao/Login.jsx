@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import Header from "../../components/Header";
-
+import { supabase } from "../../config/supabase";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -13,36 +13,16 @@ function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const navigate = useNavigate();
 
-  async function comerciantePainel(usuarioId) {
-console.log(import.meta.env.VITE_API_URL);
-    try {
-
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}comerciante/painel-comerciante/${usuarioId}`
-      );
-
-      console.log(response.data);
-
-      return response.data;
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-  }
-
   const handleLogin = async (e) => {
     e.preventDefault();
-console.log(import.meta.env.VITE_API_URL);
     try {
+      // 1. Faz o login normal no backend
       const response = await axios.post(`${import.meta.env.VITE_API_URL}auth/login`, {
         email,
         senha,
       });
 
       const usuario = response.data;
-
       localStorage.setItem("usuario", JSON.stringify(usuario));
 
       Swal.fire({
@@ -51,18 +31,29 @@ console.log(import.meta.env.VITE_API_URL);
         text: `Bem-vindo, ${usuario.nome}`,
       });
 
-      if (usuario.tipo === "comerciante") {
+      // 2. Se for comerciante, vai DIRETO para o painel dele!
+      if (usuario.tipo === "comerciante" || usuario.role === "comerciante") {
+        
+        // Puxa o ID da empresa vinculada a esse usuário
+        const { data: empresaData } = await supabase
+          .from("empresas")
+          .select("id")
+          .eq("usuario_id", usuario.id)
+          .single();
 
-        const empresa = await comerciantePainel(usuario.id);
-
-        navigate(`/painel-comerciante/${empresa.id}`);
+        if (empresaData && empresaData.id) {
+          // 🔥 VAI DIRETO PRO PAINEL! Sem checar mapa, sem barreira.
+          navigate(`/painel-comerciante/${empresaData.id}`);
+        } else {
+          // Fallback de segurança caso o banco de dados tenha falhado ao criar a empresa dele
+          navigate("/home");
+        }
       } else {
+        // Se for cliente comum, vai pra home
         navigate("/home");
       }
     } catch (err) {
-
       console.log(err.response?.data);
-
       Swal.fire({
         icon: "error",
         title: "Erro",
@@ -85,21 +76,12 @@ console.log(import.meta.env.VITE_API_URL);
 
       {/* CARD */}
       <div className="relative z-10 bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl p-10 w-full max-w-md flex flex-col items-center">
-
-        {/* LOGO */}
         <img src={logo} className="h-20 mb-4" alt="logo" />
-
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Entrar na Conta
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Entrar na Conta</h2>
 
         <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
-
-          {/* EMAIL */}
           <div className="flex flex-col">
-            <label className="text-gray-700 font-medium mb-1">
-              Email
-            </label>
+            <label className="text-gray-700 font-medium mb-1">Email</label>
             <input
               type="email"
               placeholder="seuemail@gmail.com"
@@ -109,12 +91,8 @@ console.log(import.meta.env.VITE_API_URL);
             />
           </div>
 
-          {/* SENHA */}
           <div className="flex flex-col">
-            <label className="text-gray-700 font-medium mb-1">
-              Senha
-            </label>
-
+            <label className="text-gray-700 font-medium mb-1">Senha</label>
             <div className="relative">
               <input
                 type={mostrarSenha ? "text" : "password"}
@@ -123,7 +101,6 @@ console.log(import.meta.env.VITE_API_URL);
                 onChange={(e) => setSenha(e.target.value)}
                 className="border border-gray-300 rounded-lg px-4 py-2 pr-10 w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
               />
-
               <button
                 type="button"
                 onClick={() => setMostrarSenha(!mostrarSenha)}
@@ -134,27 +111,20 @@ console.log(import.meta.env.VITE_API_URL);
             </div>
           </div>
 
-          {/* BOTÃO */}
           <button
             type="submit"
             className="bg-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:bg-purple-700 transition duration-300"
           >
             Entrar
           </button>
-
         </form>
 
-        {/* LINK */}
         <p className="mt-6 text-gray-600 text-sm">
           Ainda não tem conta?{" "}
-          <Link
-            to="/cadastro"
-            className="text-purple-600 font-semibold hover:text-purple-800"
-          >
+          <Link to="/cadastro" className="text-purple-600 font-semibold hover:text-purple-800">
             Criar cadastro
           </Link>
         </p>
-
       </div>
     </div>
   );

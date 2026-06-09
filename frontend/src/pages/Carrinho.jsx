@@ -31,9 +31,9 @@ export default function Carrinho() {
       const response = await fetch(`${import.meta.env.VITE_API_URL}payment/create-checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // 🔥 MODIFICAÇÃO AQUI: Enviando os itens do carrinho para o backend
         body: JSON.stringify({ 
-          valor: valorTotal, 
-          descricao: "Compra MeDespache" 
+          items: carrinho 
         }),
       });
 

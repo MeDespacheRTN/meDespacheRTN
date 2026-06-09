@@ -26,7 +26,7 @@ import PainelComerciante from "./pages/Comerciante/PainelComerciante";
 import Perfil from "./pages/Perfil";
 import CadProduto from "./pages/Comerciante/CadProduto";
 
-// 🔥 IMPORT DA PÁGINA DO CARRINHO (Certifique-se de ter esse arquivo criado)
+// 🔥 IMPORT DA PÁGINA DO CARRINHO
 import Carrinho from "./pages/Carrinho"; 
 
 // Footer Pages
@@ -42,16 +42,19 @@ import Seguranca from "./pages/FooterPages/Seguranca";
 function Layout() {
   const location = useLocation();
 
-  const esconderLayout = [
+  // Rotas estáticas que não devem ter Header e Footer
+  const rotasSemLayout = [
     "/dashboard",
     "/cad-estabelecimento",
-    "/painel-comerciante/1",
     "/cad-produto",
     "/pagamento",
     "/"
   ];
 
-  const ocultar = esconderLayout.includes(location.pathname);
+  // Verifica se é uma rota estática OU se é uma rota dinâmica (como o painel do comerciante)
+  const ocultar = rotasSemLayout.includes(location.pathname) || 
+                  location.pathname.startsWith("/painel-comerciante") ||
+                  location.pathname.startsWith("/editar-produto");
 
   return (
     <>
