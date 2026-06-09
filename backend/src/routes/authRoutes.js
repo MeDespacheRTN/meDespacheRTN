@@ -1,5 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+
+// Configuração do multer para pegar a imagem
+const upload = multer({ storage: multer.memoryStorage() });
 
 const authController = require("../controllers/authController");
 
@@ -13,6 +17,11 @@ router.post("/login", authController.login);
 router.get("/melhores_avaliacoes", authController.GetMelhoresEmpresas);
 
 router.get("/loja/:id", authController.GetLoja);
+
+// 🔥 NOVAS ROTAS
+router.get("/ranking", authController.GetRankingMensal);
+// Adicionado o upload.single("foto") apenas nesta rota
+router.put("/perfil/:id", upload.single("foto"), authController.AtualizarPerfil);
 
 // CHAT 
 // router.post("/conversa", authController.getOrCreateConversa);

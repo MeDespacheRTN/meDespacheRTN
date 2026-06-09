@@ -1,13 +1,17 @@
 import logo from "../assets/midislogoE.png";
-import { FaUser, FaBars, FaTimes } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { FaUser, FaBars, FaTimes, FaShoppingCart } from "react-icons/fa";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { CartContext } from "../contexts/CartContext"; 
 
 function Header() {
   const [usuario, setUsuario] = useState(null);
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // 🔥 TRAVA DE SEGURANÇA ADICIONADA AQUI
+  const { totalItens } = useContext(CartContext) || { totalItens: 0 };
 
   const navigate = useNavigate();
 
@@ -125,7 +129,18 @@ function Header() {
           </ul>
 
           {/* AÇÕES DESKTOP */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-5">
+            
+            {/* ÍCONE DO CARRINHO (DESKTOP) */}
+            <Link to="/carrinho" className="relative text-gray-700 hover:text-purple-600 transition flex items-center">
+              <FaShoppingCart size={22} />
+              {totalItens > 0 && (
+                <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  {totalItens}
+                </span>
+              )}
+            </Link>
+
             {usuario ? (
               <>
                 <span className="text-gray-700 font-medium">
@@ -177,17 +192,28 @@ function Header() {
             )}
           </div>
 
-          {/* BOTÃO MOBILE */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="
-              md:hidden
-              text-gray-700
-              text-xl
-            "
-          >
-            {menuOpen ? <FaTimes /> : <FaBars />}
-          </button>
+          {/* BOTÃO MOBILE + CARRINHO MOBILE */}
+          <div className="md:hidden flex items-center gap-4">
+            {/* ÍCONE DO CARRINHO (MOBILE) */}
+            <Link to="/carrinho" className="relative text-gray-700 hover:text-purple-600 transition">
+              <FaShoppingCart size={22} />
+              {totalItens > 0 && (
+                <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  {totalItens}
+                </span>
+              )}
+            </Link>
+
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="
+                text-gray-700
+                text-xl
+              "
+            >
+              {menuOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </div>
         </div>
 
         {/* MENU MOBILE */}

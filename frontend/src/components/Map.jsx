@@ -1,61 +1,70 @@
+import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-
+import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+// ==========================================
+// CORREÇÃO DO ÍCONE PADRÃO DO LEAFLET
+// O React costuma bugar o ícone padrão, isso resolve:
+// ==========================================
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-// Corrige ícone do marker
-const DefaultIcon = L.icon({
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
   shadowUrl: markerShadow,
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
-
-function Map({ estabelecimentos }) {
-  const position = [-12.938416, -38.387138];
+export default function Map({ estabelecimentos }) {
+  // Centro padrão do mapa (Coordenadas de Salvador - BA baseadas no seu banco)
+  const defaultCenter = [-12.9386, -38.4319];
 
   return (
     <MapContainer
-      center={position}
-      zoom={17}
-      className="w-full h-full rounded-2xl"
+      center={defaultCenter}
+      zoom={12}
+      scrollWheelZoom={true}
+      style={{ height: "100%", width: "100%", zIndex: 1 }} // zIndex 1 para não sobrepor seus modais
     >
+      {/* CAMADA DE VISUAL DO MAPA (Usando OpenStreetMap que é gratuito) */}
       <TileLayer
-        attribution="© OpenStreetMap"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* MARKERS DOS ESTABELECIMENTOS */}
-      {estabelecimentos?.map((estabelecimento) => (
-        <Marker
-          key={estabelecimento.id}
-          position={[estabelecimento.latitude, estabelecimento.longitude]}
-        >
-          <Popup>
-            <div className="min-w-[180px]">
-              {estabelecimento.imagem_url && (
-                <img
-                  src={estabelecimento.imagem_url}
-                  alt={estabelecimento.nome}
-                  className="w-full h-24 object-cover rounded mb-2"
-                />
-              )}
-
-              <h3 className="font-bold">{estabelecimento.nome}</h3>
-
-              <p className="text-sm">{estabelecimento.categoria}</p>
-
-              <p className="text-xs text-gray-500">
-                {estabelecimento.endereco}
-              </p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+      {/* RENDERIZANDO OS ESTABELECIMENTOS DO SEU BANCO DE DADOS */}
+      {estabelecimentos && estabelecimentos.length > 0 ? (
+        estabelecimentos.map((local) => (
+          <Marker 
+            key={local.id} 
+            position={[local.latitude, local.longitude]}
+          >
+            {/* O POPUP QUE ABRE QUANDO CLICA NO ÍCONE DO MAPA */}
+            <Popup>
+              <div className="flex flex-col gap-1 min-w-[150px]">
+                <h3 className="font-bold text-lg text-purple-700 m-0">
+                  {local.nome}
+                </h3>
+                <span className="text-xs font-semibold bg-gray-200 text-gray-700 px-2 py-1 rounded-md w-fit">
+                  {local.categoria || "Sem Categoria"}
+                </span>
+                <p className="text-sm text-gray-600 mt-1 m-0">
+                  {local.endereco || "Endereço não informado"}
+                </p>
+                <a 
+                  href={`/loja/${local.id}`} 
+                  className="mt-2 bg-purple-600 text-white text-center text-sm py-1.5 rounded-lg hover:bg-purple-700 transition"
+                >
+                  Visitar Loja
+                </a>
+              </div>
+            </Popup>
+          </Marker>
+        ))
+      ) : null}
     </MapContainer>
   );
 }
-
-export default Map;

@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const Empresa = require("../models/Empresa");
 const supabase = require('../config/db');
-const { get } = require("../routes/authRoutes");
 
 const GetMelhoresEmpresas = async () => {
  
@@ -109,7 +108,7 @@ const login = async (email, senha) => {
     throw new Error("Preencha todos os campos");
   }
 
-  // uscar usuário pelo email dele rs
+  // buscar usuário pelo email dele rs
   const { data: usuario, error } = await supabase
     .from('usuarios')
     .select('*')
@@ -149,6 +148,8 @@ const login = async (email, senha) => {
     nome: usuario.nome,
     email: usuario.email,
     tipo: usuario.tipo,
+    telefone: usuario.telefone || "", // Retornando o telefone no login se existir
+    foto_url: usuario.foto_url || null, // Retornando a foto no login se existir
     temEmpresa
   };
 };
@@ -179,9 +180,110 @@ const GetLoja = async (id) => {
   return data;
 };
 
+// 🔥 FUNÇÃO DE ATUALIZAR PERFIL ADICIONADA AQUI
+const AtualizarPerfil = async (id, dados) => {
+  const { nome, email, telefone, nova_senha, foto } = dados;
+
+  let updates = {};
+  if (nome) updates.nome = nome;
+  if (email) updates.email = email;
+  if (telefone) updates.telefone = telefone;
+
+  if (nova_senha) {
+    updates.senha = await bcrypt.hash(nova_senha, 10);
+  }
+
+  // Lógica de upload da foto
+  if (foto) {
+    const fileExt = foto.originalname.split('.').pop();
+    const fileName = `perfil_${id}_${Date.now()}.${fileExt}`;
+
+    // Upload no storage do supabase (crie o bucket 'perfis' lá no painel)
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('perfis') 
+      .upload(fileName, foto.buffer, {
+        contentType: foto.mimetype,
+        upsert: true
+      });
+
+    if (uploadError) {
+      throw new Error("Erro ao fazer upload da foto: " + uploadError.message);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('perfis')
+      .getPublicUrl(fileName);
+
+    updates.foto_url = publicUrlData.publicUrl;
+  }
+
+  // Atualizar banco de dados
+  const { data: usuarioAtualizado, error } = await supabase
+    .from('usuarios')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error("Erro ao atualizar o banco de dados: " + error.message);
+  }
+
+  delete usuarioAtualizado.senha; // Segurança
+
+  return { message: "Perfil atualizado com sucesso", usuario: usuarioAtualizado };
+};
+
+const GetRankingMensal = async () => {
+  // 1. Busca todas as empresas e as fotos dos donos
+  const { data: empresas, error: errEmpresas } = await supabase
+    .from('empresas')
+    .select(`
+      id,
+      nome_loja,
+      usuarios (
+        foto_url
+      )
+    `);
+
+  if (errEmpresas) {
+    throw new Error("Erro ao buscar dados do ranking: " + errEmpresas.message);
+  }
+
+  // 2. Busca TODOS os pedidos reais da tabela 'pedidos'
+  const { data: pedidos, error: errPedidos } = await supabase
+    .from('pedidos')
+    .select('empresa_id'); 
+
+  if (errPedidos) {
+    throw new Error("Erro ao buscar pedidos: " + errPedidos.message);
+  }
+
+  // 3. Monta o ranking contando quantos pedidos cada loja tem
+  const ranking = empresas.map((empresa) => {
+    // Filtra os pedidos que pertencem ao ID dessa empresa e conta o tamanho do array
+    const totalVendas = pedidos ? pedidos.filter(p => p.empresa_id === empresa.id).length : 0;
+
+    return {
+      id: empresa.id,
+      nome_loja: empresa.nome_loja,
+      foto_perfil: empresa.usuarios?.foto_url || null, 
+      vendas_mes: totalVendas // 🔥 AGORA O NÚMERO É 100% REAL DO BANCO!
+    };
+  });
+
+  // 4. Ordena do maior vendedor para o menor
+  ranking.sort((a, b) => b.vendas_mes - a.vendas_mes);
+
+  // 5. Retorna o Top 10
+  return ranking.slice(0, 10);
+};
+
 module.exports = {
   register,
   login,
   GetMelhoresEmpresas,
-  GetLoja
+  GetLoja,
+  AtualizarPerfil,
+  GetRankingMensal
 };

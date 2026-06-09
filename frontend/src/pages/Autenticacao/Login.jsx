@@ -57,7 +57,7 @@ console.log(import.meta.env.VITE_API_URL);
 
         navigate(`/painel-comerciante/${empresa.id}`);
       } else {
-        navigate("/");
+        navigate("/home");
       }
     } catch (err) {
 

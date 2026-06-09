@@ -5,6 +5,9 @@ import {
   useLocation,
 } from "react-router-dom";
 
+// 🔥 IMPORT DO CONTEXTO DO CARRINHO
+import { CartProvider } from "./contexts/CartContext";
+
 import Login from "./pages/Autenticacao/Login";
 import Cadastro from "./pages/Autenticacao/Cadastro";
 import Header from "./components/Header";
@@ -23,6 +26,9 @@ import PainelComerciante from "./pages/Comerciante/PainelComerciante";
 import Perfil from "./pages/Perfil";
 import CadProduto from "./pages/Comerciante/CadProduto";
 
+// 🔥 IMPORT DA PÁGINA DO CARRINHO (Certifique-se de ter esse arquivo criado)
+import Carrinho from "./pages/Carrinho"; 
+
 // Footer Pages
 import ComoFunciona from "./pages/FooterPages/ComoFunciona";
 import Planos from "./pages/FooterPages/Planos";
@@ -32,7 +38,6 @@ import CentralAjuda from "./pages/FooterPages/CentralAjuda";
 import Termos from "./pages/FooterPages/Termos";
 import Privacidade from "./pages/FooterPages/Privacidade";
 import Seguranca from "./pages/FooterPages/Seguranca";
-
 
 function Layout() {
   const location = useLocation();
@@ -52,7 +57,7 @@ function Layout() {
     <>
       {!ocultar && <Header />}
 
-            <Routes>
+      <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/loja/:id" element={<Loja />} />
@@ -66,6 +71,9 @@ function Layout() {
         <Route path="/erro" element={<Erro />} />
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/" element={<Landing />} />
+
+        {/* 🔥 ROTA DO CARRINHO */}
+        <Route path="/carrinho" element={<Carrinho />} />
 
         <Route path="/painel-comerciante/:id" element={<PainelComerciante />} />
         <Route path="/perfil" element={<Perfil />} />
@@ -89,9 +97,12 @@ function Layout() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Layout />
-    </BrowserRouter>
+    // 🔥 ENVOLVENDO A APLICAÇÃO INTEIRA COM O CART PROVIDER
+    <CartProvider>
+      <BrowserRouter>
+        <Layout />
+      </BrowserRouter>
+    </CartProvider>
   );
 }
 
